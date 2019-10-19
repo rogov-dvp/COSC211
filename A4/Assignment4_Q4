@@ -1,0 +1,50 @@
+.data
+newLine: .asciiz "\n"
+user:	.space 21	# 20 bytes for 20 characters + 1 byte for null
+.text
+
+	li $t9 48		#For checking if equal to 0. To avoid psuedo code. 48 since hex 0 is 48 decimal.
+	li $t3 0		# i++
+	li $v0 8		# syscall for reading string
+	la $a0 user		# Use the space from user
+loop:
+	li $a1 2 		# 1 byte for a character + 1 byte for null
+	syscall			# User's input called
+	lb $t0 ($a0)		#load user's input for checking
+	beq $t0 $t9 exit	# if user types 0, exit to exitWith0
+	addi $t3 $t3 1		# i++ ; Also happens to store offset. used when exiting loop with 0
+	beq $t3 20 exit		# If counter==20, exit
+	addi $a0 $a0 1		#increment's positioning in user. 
+
+	j loop
+#Two options from here: Exit from 0 or input more than 20 characters
+#First Option: Exit with input of 0;
+exit:
+	li $v0 4		#syscall code for priting string
+	la $a0 newLine		#prints "\n" to make a new line
+	syscall
+	
+	li $t7 10
+	la $a1 user		#load user input into a1
+	li $t0 0		#new counter
+	li $v0 11		#syscall code for priting string
+loop2:	beq $t0 $t3 leaveLoop	#if old counter==new counter, leave loop. Note: old counter does not include the 0 input 
+	lb $a0 ($a1)		#load byte starting from base address of user
+	beq $a0 $t7 skip	# $a0 == $t7, skip it. New Line is given with a decimal value of 10 ($t7).
+	syscall		
+skip:	addi $a1 $a1 1		#increment base address by 1 
+	addi $t0 $t0 1		#increment counter
+
+	j loop2			#jump back to loop2
+	
+leaveLoop:
+	li $v0 10
+	syscall
+
+
+
+
+	
+	
+
+	

@@ -1,0 +1,70 @@
+#Write a MIPS program that prompts the user to enter a 3-digit hex number, where all digits
+#are from A-F (capital letters only), and then displaysthe decimal equivalent. Assume the user
+#enters valid input. Hint: what is the hex decimal value for alphabets?
+
+.data
+str:	.asciiz "Enter a 3-digit hex number(all digits must be from A to F): "
+str2:	.asciiz "\nThe decimal equivalent is: "
+user:	.space 4
+.text
+	#print 'str'
+	li $v0 4	#syscall for printing string
+	la $a0 str	#takes string from 'str'
+	syscall
+	
+	#read user's input
+	li $v0 8	#syscall for reading string
+	la $a0 user	#Uses space from user
+	li $a1 4	#4 bytes for user. 3 bytes for 3 characters and 1 for null
+	syscall
+	
+	la $t0, ($a0)
+	
+	#print 'str2'
+	li $v0 4	#syscall for printing string
+	la $a0 str2	#takes string from 'str'
+	syscall
+	
+	#Coverting Hex and summing into a decimal------------------------------------------------------------
+	#Hex is read right to left. so logic must be applied backwards
+	#						  eg. if user types "ABC"
+	lb $t1 2($t0)	#Hex value of 3rd letter		-->	A
+	lb $t2 1($t0)	#Hex value of 2nd letter		-->	B
+	lb $t3 ($t0)	#Hex value of 1st letter		-->	C
+	
+	#'A' has a hex value of 41 which is 65 in decimal. 'A' represent 10 in decimal. so we subtract 55. QED
+	sub $t1 $t1 55	#Decimal value of 3rd letter
+	sub $t2 $t2 55	#Decimal value of 2nd letter
+	sub $t3 $t3 55	#Decimal value of 1st letter
+	
+	#Next part is for correcting valueating the letters based on their positions--------------------------
+	
+	li $t4 16	#Used for calculations based on position (i.e. 16^1, 16^2)
+	#1)first digit 16^0.we dont do anything. so we just add the decimal number that the letter represents.
+	#2)second digit is 16^1. so we must multiply the 2nd letter by 16.
+	mult $t4, $t2	#16 * (2nd letter)
+	mflo $t2	#move from lo to $t2
+	#3)1st letter is 16^2. so we must multiply the 2nd letter by 256 or 16^2.
+	mult $t4 $t4	#16*16=256 or 16^2
+	mflo $t4	#t4=256
+	mult $t4 $t3	#256*(3rd letter)
+	mflo $t3	#move to $t3
+	
+	#Now we just sum all of it together ------------------------------------------------------------------
+	
+	add $t4 $t3 $t2	 #add 1st and 2nd digit and put it in t4 
+	add $t4 $t4 $t1	 #add 3rd digit to t4. giving FINAL ANSWER.
+	
+	#print answer
+	li $v0 1	#syscall for printing integer
+	la $a0	($t4)	#print the contents of t4
+	syscall
+	
+
+	
+	
+	 
+	
+	
+	
+	

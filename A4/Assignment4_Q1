@@ -1,0 +1,75 @@
+.data
+str:		.asciiz "Type one char(A-F) or number: "
+str2:		.asciiz "\nHex digit X2 in decimal is "
+errorStr:	.asciiz "\nUnrecognized hex digit. Try again: "
+user:		.space 2		#one byte for one char  
+.text
+
+	li $v0 4			#System call for printing String
+	la $a0 str			#Selects 'str' to print when syscall
+	syscall
+	
+	li $v0 8			#System call for reading String
+	la $a0 user			#use this reserved space for user's input
+	li $a1 2			# 2 byte for user to write a char and one for null terminator
+	syscall
+	
+	lb $t0, ($a0)	#Since we are dealing with one char. load byte into t0 for calculation step
+		
+#Error check loop:
+	#idea: select if between 48-57 or 65-70. If not, send to error.
+	
+	li $t1, 48			# hex value of 0
+	li $t2, 57			# hex value of 9
+	li $t3, 65			# hex value of A
+	li $t4, 70			# hex value of F
+loop:
+	bgt $t0, $t4, errorPrint	# if user's input >70('F'), branch to errorPrint
+	blt $t0, $t1, errorPrint	# if user's input < 48('0'), branch to errorPrint
+	blt $t0, $t3, check		# if user's input < 65('A'), branch to 'check', to check if greater than 57
+	j letter			#jump to letter	
+	
+check:
+	bgt $t0, $t2, errorPrint	# if user's input > 57, branch to errorPrint
+	j number			#jump to number
+	
+errorPrint:	
+	li $v0 4			#System call for printing String
+	la $a0 errorStr			#print errorStr when syscall
+	syscall
+	
+	li $v0 8			#System call for reading String
+	la $a0 user			#use this reserved space for user's input
+	li $a1 2			# 2 byte for user to write a char and one for null terminator
+	syscall
+	
+	lb $t0 ($a0)			#reload the new user's value into t0
+	j loop				#Go to loop to check error conditions again
+	
+#Calculating integer value of user's char -----------------------------------------------------------
+number:
+	#decimal value of '0' is 48. subtract 48 to get the int value of 0.
+	sub $t0 $t0 48			#subtract by 48 to acquire integer value
+	j calculations			#jump to calculations
+letter:
+	#decimal value of 'A' is 65. 'A' hs an integer value of 10. so we subtract 55.
+	sub $t0 $t0 55			#subtract 55 and place answer in t0
+	j calculations			#jump to calculations
+	
+calculations:
+	#calculate. multiply user's input by two, print string, print modified user's answer, exit program
+	li $t2 2			#t2=2 used for multiplying
+	mult $t0 $t2			#multiply user's input by 2. Did not use ssl because input of '0' doesnt work
+	mflo $t0			#move answer from lo to t0
+	
+	li $v0 4 			#System call for printing String
+	la $a0 str2			#Selects 'str2' to print when syscall
+	syscall
+	
+	li $v0 1			#system call for integer
+	la $a0 ($t0)			#use the contents of t1(FINAL ANSWER)
+	syscall
+	
+	li $v0 10			#System call code for exiting program
+	syscall				#Exit program
+

@@ -1,0 +1,47 @@
+.data
+str:	.asciiz "Enter a 3 digit number: "
+str2:	.asciiz "\nThe sum of the 3 digits: "
+user: 	.space 4 #4 bytes for user's str + null
+.text
+	#print-string: str
+	li $v0 4	#Syscall for printing String
+	la $a0 str	#load 'str' when syscall
+	syscall	
+	
+	#print-reading into: user
+	li $v0 8	#Syscall for reading string
+	la $a0 user	#load the user's string into 'user' space
+	li $a1 4	#3 bytes for string and 1 for null 
+	syscall
+	
+	la $t0, ($a0)	#save user's input into t0
+	
+	#print-string: str2
+	li $v0 4	#Syscall for printing String
+	la $a0 str2	#load 'str2' when syscall
+	syscall
+
+	#Seperate the three digits for summation---------------------------------#
+	
+	lb $t1, ($t0)	#stores hex of first digit
+	lb $t2, 1($t0)	#stores hex of 2nd digit
+	lb $t3, 2($t0)	#stores hex of 3rd digit
+	
+	#integer value of '0' in hex is 30. In decimal, it is 48. subtract 48 to acquire true int value.
+	sub $t1 $t1 48	#integer value of first digit		
+	sub $t2 $t2 48	#integer value of 2nd digit
+	sub $t3 $t3 48	#integer value of 3rd digit
+	
+	add $t4 $t1 $t2	 #t4=t1+t2	(sums the first two digits)
+	add $t4 $t4 $t3	 #t4=t4+t3	(sums all digits to acquire FINAL ANSWER. )
+	li $v0 1	 # print integer
+	la $a0 ($t4)	 # print contents of t4 when syscall
+	syscall
+	
+	
+	
+	
+
+
+
+

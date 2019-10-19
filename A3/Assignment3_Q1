@@ -1,0 +1,35 @@
+	.data
+str1:	.asciiz "Enter three characters: "
+str2:	.asciiz "\nYour characters in reverse order: " 
+chars: .space 4
+	
+	.text
+	#print str1
+      	li $v0, 4    		# load system call code to $v0, 11 for print-character
+      	la $a0, str1  		# load address of the "str1" to 1st arg 
+      	syscall			# syscall to print
+   
+   	#Have user type 3 letters
+      	li $v0, 8		# Syscall code for read_str
+      	la, $a0, chars	      	# address of name in a0
+      	li $a1, 4		# each character is 1 byte (3 bytes for 3 char) + 1 byte for null terminator
+      	syscall
+      	
+      	la $t0, chars		#loads the base address of char into t0
+      	
+      	#print str2
+      	li $v0, 4		# load system call code to $v0, 12 for writing print-character
+	la $a0, str2		# load address of str2. This is the string it prints
+      	syscall			#print str 2
+      	
+      	#print in reverse
+      	li $v0, 11	#print character. Used for the next three characters
+      	lb  $a0, 2($t0)	#load byte(character size), 2+base address because we want the last character (index 2)
+      	syscall
+      	lb  $a0, 1($t0)#load byte(character size), 1+base address because we want the 2nd character (index 1)
+      	syscall
+      	lb  $a0, ($t0)#load byte(character size), 0+base address because we want the the first character (index 0)
+      	syscall
+      		
+      			
+      				

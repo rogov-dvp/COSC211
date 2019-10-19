@@ -1,0 +1,62 @@
+.data
+str:	.asciiz "\n"
+hexStr: .asciiz "ABCDEF"
+user:	.space 5	#5 space for 4 characters + null terminator
+.text
+
+	li $v0 8	#System call for reading string
+	la $a0 user	#Using space in 'user'
+	li $a1 5	#5 bytes required, 4 char + null terminator
+	syscall
+	
+	la $t9 ($a0)	#save contents of a0(user's input) in t0
+
+	li $v0 4		#syscall code for printing string
+	la $a0 str		#create new line
+	syscall
+
+#Calculations--------------------------------------------------------------------------------------
+
+#for loop: i and condition:
+	li $t5 0	#sum and eventually the final answer
+	li $s1 0	#i=0
+	li $s2 8	#s2=8. will be used in srl. For calculating bit value of it's position
+	li $s3 4	#condition
+	li $s4 1	#offset
+
+loop:	mult $s4 $s1		#find offset based on i
+	mflo $s5		#move from lo to s4
+	add $t1 $t9 $s5		# t1 = (base address) + 1; offset downwards by 1 (every itiration)
+	lb  $t8 ($t1) 		# t0 = a[i]
+	beq $s1 $s3 exitLoop	# if i == 4
+	sub $t8 $t8 48		# turn the hex 1 to decimal by subtracting 48
+	mult $t8 $s2 		# multiply position value with whether it's 1 or 0
+	mflo $t6		# move from lo to t6
+	srl $s2 $s2 1		# shift left logic to increase the value of the next's bit position.
+	add $t5 $t5 $t6		# sum t5 --> eventually FINAL ANSWER
+	addi $s1 $s1 1		# i++;
+	j loop
+
+#To check if answer needs to be a character
+exitLoop:		#t5 holds answer
+	li $t1 10		# Load in 10 into t1. Answers above 10 are letters
+	la $t2 hexStr		# load address of hexStr "ABCDEF"
+	blt $t5 $t1 finish	# if answer< 10, print that number
+	sub $t3 $t5 $t1		# answer - 10 
+	add $t5 $t2 $t3		# add the offset to hexStr and make that the letter answer. 
+
+
+	li $v0 11		#syscall code for printing string
+	lb $a0 ($t5)		#Use the contents of t5 (sum AKA FINAL ANSWER) to print
+	syscall	
+	
+	li $v0 10		#End program
+	syscall
+	
+finish:
+	li $v0 1		#syscall code for printing integer
+	la $a0 ($t5)		#Use the contents of t5 (sum AKA FINAL ANSWER) to print
+	syscall			
+	
+	li $v0 10		#End program
+	syscall
